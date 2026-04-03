@@ -8,6 +8,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetCharBtn = document.getElementById('reset-char-btn');
     const skipCharBtn = document.getElementById('skip-char-btn');
 
+    // Grid painting modals
+    const gridModal = document.getElementById('days-grid-modal');
+    const paintModal = document.getElementById('paint-modal');
+    const closeGridBtn = document.getElementById('close-grid-btn');
+    const closePaintBtn = document.getElementById('close-paint-btn');
+    const skipPaintBtn = document.getElementById('skip-paint-btn');
+
     // UI elements for main screen
     const progressBar = document.getElementById('progress-bar');
     const percentageDisplay = document.getElementById('percentage-display');
@@ -24,7 +31,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const TOTAL_DAYS = 365;
     const NUM_GIFS = 9;
 
-    // Calendar elements
+    // Gamification state
+    let paintedDays = JSON.parse(localStorage.getItem('army_painted_days') || '[]');
+    let currentPaintingDayIdx = null;
+
+    // Calendar setup elements
     const calMonthYear = document.getElementById('cal-month-year');
     const calDays = document.getElementById('cal-days');
     const calPrev = document.getElementById('cal-prev');
@@ -41,7 +52,182 @@ document.addEventListener('DOMContentLoaded', () => {
     const today = new Date();
     today.setHours(0,0,0,0);
 
-    // Render 9 gifs in character screen
+    // Initialization
+    initGifs();
+
+    const savedDate = localStorage.getItem('army_start_date');
+    const savedChar = localStorage.getItem('army_char_id');
+
+    if (savedDate) {
+        if (savedChar !== null) {
+            setupScreen.classList.add('hidden');
+            charScreen.classList.add('hidden');
+            showScreen(mainScreen);
+            applyCharacter(savedChar);
+            updateStats(savedDate);
+        } else {
+            showScreen(charScreen);
+            setupScreen.classList.add('hidden');
+            mainScreen.classList.add('hidden');
+        }
+    } else {
+        showScreen(setupScreen);
+        mainScreen.classList.add('hidden');
+        charScreen.classList.add('hidden');
+        renderCalendar();
+    }
+
+    // Modal Interaction
+    closeGridBtn.addEventListener('click', () => {
+        gridModal.classList.add('hidden');
+        updateStats(localStorage.getItem('army_start_date'));
+    });
+
+    closePaintBtn.addEventListener('click', () => {
+        paintModal.classList.add('hidden');
+    });
+
+    skipPaintBtn.addEventListener('click', () => {
+        const startDate = new Date(localStorage.getItem('army_start_date'));
+        startDate.setHours(0,0,0,0);
+        let realPassed = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+        if(realPassed > TOTAL_DAYS) realPassed = TOTAL_DAYS;
+        if(realPassed < 0) realPassed = 0;
+        
+        for(let i=0; i < realPassed - 1; i++) {
+            if(!paintedDays.includes(i)) paintedDays.push(i);
+        }
+        localStorage.setItem('army_painted_days', JSON.stringify(paintedDays));
+        renderDaysGrid(realPassed);
+    });
+
+    function renderDaysGrid(realPassed) {
+        const cal365 = document.getElementById('calendar-365');
+        cal365.innerHTML = '';
+        for (let i = 0; i < TOTAL_DAYS; i++) {
+            const cell = document.createElement('div');
+            cell.classList.add('day-cell');
+            
+            if (paintedDays.includes(i)) {
+                cell.classList.add('painted');
+            } else if (i < realPassed) {
+                cell.classList.add('available');
+                cell.addEventListener('click', () => {
+                    openPaintModal(i, realPassed);
+                });
+            } else {
+                cell.classList.add('future');
+            }
+            cal365.appendChild(cell);
+        }
+    }
+
+    function openPaintModal(dayIdx, realPassed) {
+        currentPaintingDayIdx = dayIdx;
+        paintModal.classList.remove('hidden');
+        document.getElementById('paint-pct').textContent = '0';
+        initCanvas();
+    }
+
+    function initCanvas() {
+        const container = document.querySelector('.canvas-container');
+        container.innerHTML = '<canvas id="paint-canvas"></canvas>';
+        const c = document.getElementById('paint-canvas');
+        const ctx = c.getContext('2d');
+        
+        c.width = container.clientWidth;
+        c.height = container.clientHeight;
+        
+        ctx.fillStyle = '#272c19'; 
+        ctx.fillRect(0, 0, c.width, c.height);
+        
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.lineWidth = 45;
+        ctx.globalCompositeOperation = 'destination-out';
+        
+        let isDrawing = false;
+        let lastX = 0, lastY = 0;
+        
+        function getCoords(e) {
+            const rect = c.getBoundingClientRect();
+            let clientX, clientY;
+            if(e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        function startPaint(e) {
+            isDrawing = true;
+            const coords = getCoords(e);
+            lastX = coords.x;
+            lastY = coords.y;
+            drawPaint(e);
+        }
+        
+        function drawPaint(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+            const coords = getCoords(e);
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(coords.x, coords.y);
+            ctx.stroke();
+            lastX = coords.x;
+            lastY = coords.y;
+            checkCompletion();
+        }
+        
+        function stopPaint() {
+            isDrawing = false;
+        }
+        
+        let checkTimeout = null;
+        function checkCompletion() {
+            if(checkTimeout) return;
+            checkTimeout = setTimeout(() => {
+                const imgData = ctx.getImageData(0,0,c.width,c.height).data;
+                let erased = 0;
+                for(let i=3; i<imgData.length; i+=4) {
+                    if(imgData[i] < 128) erased++;
+                }
+                const pct = Math.floor(erased / (imgData.length/4) * 100);
+                document.getElementById('paint-pct').textContent = pct;
+                
+                if (pct >= 90) {
+                    if(!paintedDays.includes(currentPaintingDayIdx)) {
+                        paintedDays.push(currentPaintingDayIdx);
+                    }
+                    localStorage.setItem('army_painted_days', JSON.stringify(paintedDays));
+                    paintModal.classList.add('hidden');
+                    
+                    const startDate = new Date(localStorage.getItem('army_start_date'));
+                    startDate.setHours(0,0,0,0);
+                    let realPassed = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+                    renderDaysGrid(realPassed);
+                }
+                checkTimeout = null;
+            }, 100);
+        }
+        
+        c.addEventListener('mousedown', startPaint);
+        c.addEventListener('mousemove', drawPaint);
+        c.addEventListener('mouseup', stopPaint);
+        c.addEventListener('mouseleave', stopPaint);
+        
+        c.addEventListener('touchstart', startPaint, {passive:false});
+        c.addEventListener('touchmove', drawPaint, {passive:false});
+        c.addEventListener('touchend', stopPaint);
+    }
+
     function initGifs() {
         gifsGrid.innerHTML = '';
         for(let i = 1; i <= NUM_GIFS; i++) {
@@ -54,7 +240,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.querySelectorAll('.gif-option').forEach(el => el.classList.remove('selected'));
                 img.classList.add('selected');
                 
-                // Save and transition
                 localStorage.setItem('army_char_id', i);
                 setTimeout(() => {
                     applyCharacter(i);
@@ -67,8 +252,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    initGifs();
-
     function applyCharacter(charId) {
         if (!charId || charId === 'none') {
             mainCharDisplay.style.display = 'none';
@@ -78,6 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Initial setup calendar logic
     function renderCalendar() {
         if (!calDays) return;
         calDays.innerHTML = '';
@@ -145,30 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // App Initialization
-    const savedDate = localStorage.getItem('army_start_date');
-    const savedChar = localStorage.getItem('army_char_id');
-
-    if (savedDate) {
-        if (savedChar !== null) { // Has both date and character (even if 'none')
-            showScreen(mainScreen);
-            setupScreen.classList.add('hidden');
-            charScreen.classList.add('hidden');
-            applyCharacter(savedChar);
-            updateStats(savedDate);
-        } else { // Has date but no character
-            showScreen(charScreen);
-            setupScreen.classList.add('hidden');
-            mainScreen.classList.add('hidden');
-        }
-    } else { // First time setup
-        showScreen(setupScreen);
-        mainScreen.classList.add('hidden');
-        charScreen.classList.add('hidden');
-        renderCalendar();
-    }
-
-    // Buttons Logic
+    // Buttons overrides
     saveBtn.addEventListener('click', () => {
         if (!selectedDate) {
             const calContainer = document.querySelector('.custom-calendar-container');
@@ -187,8 +348,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const selectedDateStr = `${year}-${month}-${day}`;
 
         localStorage.setItem('army_start_date', selectedDateStr);
+        // Clear history upon date change to refresh 365 grid
+        localStorage.removeItem('army_painted_days');
+        paintedDays = [];
         
-        // Check if character was already selected
         const charId = localStorage.getItem('army_char_id');
         if (charId !== null) {
             switchScreen(setupScreen, mainScreen);
@@ -206,7 +369,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     resetDateBtn.addEventListener('click', () => {
-        // Change Date only
         selectedDate = new Date(localStorage.getItem('army_start_date'));
         currentMonth = selectedDate.getMonth() || today.getMonth();
         currentYear = selectedDate.getFullYear() || today.getFullYear();
@@ -215,15 +377,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     resetCharBtn.addEventListener('click', () => {
-        // Change Character only
-        // Clear visually current selection on screen
         document.querySelectorAll('.gif-option').forEach(el => el.classList.remove('selected'));
         const currentId = localStorage.getItem('army_char_id');
         if (currentId && currentId !== 'none') {
             const img = document.querySelector(`.gif-option[data-id="${currentId}"]`);
             if(img) img.classList.add('selected');
         }
-        
         switchScreen(mainScreen, charScreen);
     });
 
@@ -246,20 +405,31 @@ document.addEventListener('DOMContentLoaded', () => {
         const endDate = new Date(startDate);
         endDate.setDate(startDate.getDate() + TOTAL_DAYS);
 
-        const now = new Date();
-        now.setHours(0, 0, 0, 0);
+        let passedTime = today - startDate;
+        let realPassedDays = Math.floor(passedTime / (1000 * 60 * 60 * 24));
 
-        let passedTime = now - startDate;
-        let passedDays = Math.floor(passedTime / (1000 * 60 * 60 * 24));
+        if (realPassedDays < 0) realPassedDays = 0;
+        if (realPassedDays > TOTAL_DAYS) realPassedDays = TOTAL_DAYS;
 
-        if (passedDays < 0) passedDays = 0;
-        if (passedDays > TOTAL_DAYS) passedDays = TOTAL_DAYS;
+        let paintedCount = paintedDays.length;
 
-        const remainingDays = TOTAL_DAYS - passedDays;
-        let percentage = (passedDays / TOTAL_DAYS) * 100;
+        if (realPassedDays > paintedCount) {
+            daysPassedEl.innerHTML = `<button id="reveal-btn" class="btn-micro" style="background:var(--primary-color);color:white;border:none;padding:4px 10px;border-radius:6px;font-size:0.9rem;cursor:pointer;animation:pulse-ring 2s infinite;">Узнать сокрытое</button>`;
+            
+            document.getElementById('reveal-btn').addEventListener('click', () => {
+                gridModal.classList.remove('hidden');
+                renderDaysGrid(realPassedDays);
+            });
+        } else {
+            daysPassedEl.style.color = "var(--success-color)";
+            daysPassedEl.textContent = paintedCount;
+        }
+
+        // Stats track painted progress
+        const remainingDays = TOTAL_DAYS - paintedCount;
+        let percentage = (paintedCount / TOTAL_DAYS) * 100;
 
         setTimeout(() => {
-            animateValue(daysPassedEl, 0, passedDays, 1200);
             animateValue(daysRemainingEl, TOTAL_DAYS, remainingDays, 1200);
             progressBar.style.width = `${percentage}%`;
             animatePercentage(percentageDisplay, 0, percentage, 1200);
@@ -303,25 +473,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const current = easeOut * (end - start) + start;
             
             let displayVal = current;
-            if (current < 100 && current > 0) {
-                displayVal = current.toFixed(2);
-            } else if (current === 100 || current === 0) {
-                displayVal = Math.round(current);
-            } else {
-                displayVal = current.toFixed(2);
-            }
+            if (current < 100 && current > 0) displayVal = current.toFixed(2);
+            else displayVal = Math.round(current);
             
             obj.innerHTML = `${displayVal}%`;
             
-            if (progress < 1) {
-                window.requestAnimationFrame(step);
-            } else {
-                if (end === 100 || end === 0) {
-                    obj.innerHTML = `${Math.round(end)}%`;
-                } else {
-                    obj.innerHTML = `${end.toFixed(2)}%`;
-                }
-            }
+            if (progress < 1) window.requestAnimationFrame(step);
+            else obj.innerHTML = (end === 100 || end === 0) ? `${Math.round(end)}%` : `${end.toFixed(2)}%`;
         };
         window.requestAnimationFrame(step);
     }
