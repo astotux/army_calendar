@@ -216,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const pct = Math.floor(erased / (imgData.length / 4) * 100);
                 document.getElementById('paint-pct').textContent = pct;
 
-                if (pct >= 99.5) {
+                if (pct >= 98) {
                     if (!paintedDays.includes(currentPaintingDayIdx)) {
                         paintedDays.push(currentPaintingDayIdx);
                     }
