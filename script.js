@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const setupScreen = document.getElementById('setup-screen');
     const mainScreen = document.getElementById('main-screen');
-    const dateInput = document.getElementById('start-date-input');
     const saveBtn = document.getElementById('save-btn');
     const resetBtn = document.getElementById('reset-btn');
 
@@ -15,6 +14,98 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const TOTAL_DAYS = 365;
 
+    // Calendar elements
+    const calMonthYear = document.getElementById('cal-month-year');
+    const calDays = document.getElementById('cal-days');
+    const calPrev = document.getElementById('cal-prev');
+    const calNext = document.getElementById('cal-next');
+
+    const monthNames = [
+        "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
+        "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"
+    ];
+
+    let selectedDate = null;
+    let currentMonth = new Date().getMonth();
+    let currentYear = new Date().getFullYear();
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    function renderCalendar() {
+        if (!calDays) return;
+        calDays.innerHTML = '';
+        calMonthYear.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+
+        // Get first day of month
+        let firstDay = new Date(currentYear, currentMonth, 1).getDay();
+        // Adjust for Monday start (0=Sunday)
+        firstDay = firstDay === 0 ? 6 : firstDay - 1;
+
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+        // Empty cells before start
+        for (let i = 0; i < firstDay; i++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.classList.add('cal-day', 'empty');
+            calDays.appendChild(emptyCell);
+        }
+
+        // Days of month
+        for (let i = 1; i <= daysInMonth; i++) {
+            const cellDate = new Date(currentYear, currentMonth, i);
+            const cell = document.createElement('div');
+            cell.classList.add('cal-day');
+            cell.textContent = i;
+
+            // Check if future
+            if (cellDate > today) {
+                cell.classList.add('disabled');
+            } else {
+                // Clickable
+                cell.addEventListener('click', () => {
+                    document.querySelectorAll('.cal-day.selected').forEach(el => el.classList.remove('selected'));
+                    cell.classList.add('selected');
+                    selectedDate = cellDate;
+                });
+
+                // Highlight selected
+                if (selectedDate && 
+                    selectedDate.getDate() === i && 
+                    selectedDate.getMonth() === currentMonth && 
+                    selectedDate.getFullYear() === currentYear) {
+                    cell.classList.add('selected');
+                }
+            }
+
+            // Highlight today
+            if (i === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) {
+                cell.classList.add('today');
+            }
+
+            calDays.appendChild(cell);
+        }
+    }
+
+    if (calPrev && calNext) {
+        calPrev.addEventListener('click', () => {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            renderCalendar();
+        });
+
+        calNext.addEventListener('click', () => {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            renderCalendar();
+        });
+    }
+
     // Check if date is in localStorage
     const savedDate = localStorage.getItem('army_start_date');
 
@@ -25,31 +116,39 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         showScreen(setupScreen);
         mainScreen.classList.add('hidden');
-        // Set max date to today by default to prevent future selections by mistake,
-        // but it's optional
-        const today = new Date().toISOString().split('T')[0];
-        dateInput.setAttribute('max', today);
+        renderCalendar();
     }
 
     saveBtn.addEventListener('click', () => {
-        const selectedDate = dateInput.value;
         if (!selectedDate) {
-            // Simple visual shake or alert
-            dateInput.style.borderColor = 'var(--danger-color)';
+            // Visual shake or alert for custom calendar
+            const calContainer = document.querySelector('.custom-calendar-container');
+            calContainer.style.borderColor = 'var(--danger-color)';
+            calContainer.style.boxShadow = '0 0 10px rgba(244, 63, 94, 0.4)';
             setTimeout(() => {
-                dateInput.style.borderColor = '';
+                calContainer.style.borderColor = 'var(--surface-light)';
+                calContainer.style.boxShadow = 'none';
             }, 1000);
             return;
         }
-        localStorage.setItem('army_start_date', selectedDate);
+
+        const year = selectedDate.getFullYear();
+        const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+        const day = String(selectedDate.getDate()).padStart(2, '0');
+        const selectedDateStr = `${year}-${month}-${day}`;
+
+        localStorage.setItem('army_start_date', selectedDateStr);
         switchScreen(setupScreen, mainScreen);
-        updateStats(selectedDate);
+        updateStats(selectedDateStr);
     });
 
     resetBtn.addEventListener('click', () => {
         if(confirm('Вы уверены, что хотите сбросить дату службы?')) {
             localStorage.removeItem('army_start_date');
-            dateInput.value = '';
+            selectedDate = null;
+            currentMonth = today.getMonth();
+            currentYear = today.getFullYear();
+            renderCalendar();
             
             // Reset animations
             daysPassedEl.textContent = '0';
