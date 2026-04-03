@@ -288,10 +288,23 @@ header {
 .progress-bar {
     height: 100%;
     width: 0%;
-    background: linear-gradient(90deg, #3b82f6, #10b981);
+    background: repeating-linear-gradient(
+        -45deg,
+        #4b5320,
+        #4b5320 12px,
+        #556b2f 12px,
+        #556b2f 24px
+    );
+    background-size: 34px 34px;
+    animation: militaryStripes 1s linear infinite;
     border-radius: 10px;
     position: relative;
     transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes militaryStripes {
+    0% { background-position: 0 0; }
+    100% { background-position: 34px 0; }
 }
 
 .progress-glow {
@@ -384,6 +397,77 @@ header {
     width: 1px;
     height: 30px;
     background-color: var(--surface-light);
+}
+
+/* GIF Character Selection & Display */
+.gifs-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 10px 0;
+}
+
+.gif-option {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    background-color: rgba(15, 23, 42, 0.4);
+    object-fit: cover;
+}
+
+.gif-option:hover {
+    transform: scale(1.05);
+}
+
+.gif-option.selected {
+    border-color: var(--success-color);
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+    transform: scale(1.05);
+}
+
+.character-display {
+    margin-top: 16px;
+    margin-bottom: 8px;
+    height: 120px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.character-display img {
+    height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5));
+}
+
+/* Settings Controls (Micro buttons at bottom) */
+.settings-controls {
+    margin-top: 16px;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+    width: 100%;
+}
+
+.btn-micro {
+    background: transparent;
+    border: none;
+    color: #475569; /* Very dark/unnoticeable */
+    font-size: 0.7rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: color 0.2s;
+    padding: 8px;
+}
+
+.btn-micro:hover {
+    color: var(--text-muted);
 }
 
 /* Mobile responsive fixes */
