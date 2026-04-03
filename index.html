@@ -94,7 +94,9 @@
                     </div>
                 </div>
             </div>
-
+            <div id="reveal-btn-container" style="display:none; margin-top: 8px;">
+                <button id="reveal-btn" class="btn" style="padding: 12px 24px; font-size: 0.95rem;">Закрасить</button>
+            </div>
             <div class="settings-controls">
                 <button id="reset-date-btn" class="btn-micro">Изменить дату</button>
                 <button id="reset-char-btn" class="btn-micro">Изменить персонажа</button>
@@ -105,7 +107,8 @@
             <div class="modal-content">
                 <h2 style="color:var(--text-main);">Закраска дней</h2>
                 <div class="calendar-365" id="calendar-365"></div>
-                <button id="skip-paint-btn" class="btn btn-secondary" style="font-size:0.8rem; padding: 12px;">Пропустить (закрасить всё, кроме сегодня)</button>
+                <button id="skip-paint-btn" class="btn btn-secondary"
+                    style="font-size:0.8rem; padding: 12px;">Пропустить</button>
                 <button id="close-grid-btn" class="btn">Закрыть</button>
             </div>
         </div>
@@ -118,7 +121,8 @@
                 <div class="canvas-container">
                     <canvas id="paint-canvas"></canvas>
                 </div>
-                <div class="paint-progress" style="font-weight:700;">Стерто: <span id="paint-pct" style="color:var(--success-color);">0</span>%</div>
+                <div class="paint-progress" style="font-weight:700;">Стерто: <span id="paint-pct"
+                        style="color:var(--success-color);">0</span>%</div>
                 <button id="close-paint-btn" class="btn btn-secondary">Отмена</button>
             </div>
         </div>
