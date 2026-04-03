@@ -503,3 +503,13 @@ document.addEventListener('DOMContentLoaded', () => {
         window.requestAnimationFrame(step);
     }
 });
+document.addEventListener('DOMContentLoaded', () => {
+    const drawer = document.getElementById('settings-drawer');
+    const toggle = document.getElementById('settings-toggle');
+
+    drawer.classList.add('collapsed');
+
+    toggle.addEventListener('click', () => {
+        drawer.classList.toggle('collapsed');
+    });
+});

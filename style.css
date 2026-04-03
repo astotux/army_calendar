@@ -613,3 +613,54 @@ header {
     cursor: crosshair;
     touch-action: none;
 }
+
+/* Начальное состояние контейнера настроек */
+.settings-drawer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    /* или ваш цвет фона */
+    transition: transform 0.3s ease-out;
+    z-index: 100;
+}
+
+/* Сдвигаем вниз, когда закрыто (скрываем кнопки) */
+.settings-drawer.collapsed {
+    transform: translateY(calc(100% - 40px));
+    /* Оставляем только "язычок" со стрелкой */
+}
+
+/* Стили для кнопок внутри */
+.settings-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 20px;
+    padding-top: 0;
+}
+
+.settings-drawer.collapsed .settings-buttons {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Анимация стрелки */
+.arrow-icon {
+    transform: rotate(180deg);
+    transition: transform 0.3s ease;
+}
+
+.settings-drawer.collapsed .arrow-icon {
+    transform: rotate(0deg);
+}
+
+/* Стиль переключателя */
+.settings-toggle {
+    width: 100%;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}

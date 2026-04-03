@@ -97,9 +97,17 @@
             <div id="reveal-btn-container" style="display:none; margin-top: 8px;">
                 <button id="reveal-btn" class="btn" style="padding: 12px 24px; font-size: 0.95rem;">Закрасить</button>
             </div>
-            <div class="settings-controls">
-                <button id="reset-date-btn" class="btn-micro">Изменить дату</button>
-                <button id="reset-char-btn" class="btn-micro">Изменить персонажа</button>
+            <div class="settings-drawer" id="settings-drawer">
+                <div class="settings-toggle" id="settings-toggle">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4b5320" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" class="arrow-icon">
+                        <path d="m18 15-6-6-6 6" />
+                    </svg>
+                </div>
+                <div class="settings-buttons">
+                    <button id="reset-date-btn" class="btn-micro">Изменить дату</button>
+                    <button id="reset-char-btn" class="btn-micro">Изменить персонажа</button>
+                </div>
             </div>
         </div>
         <!-- Модалка сетки дней -->
@@ -108,7 +116,7 @@
                 <h2 style="color:var(--text-main);">Закраска дней</h2>
                 <div class="calendar-365" id="calendar-365"></div>
                 <button id="skip-paint-btn" class="btn btn-secondary"
-                    style="font-size:0.8rem; padding: 12px;">Пропустить</button>
+                    style="font-size:0.8rem; padding: 12px;">Пропустить дни</button>
                 <button id="close-grid-btn" class="btn">Закрыть</button>
             </div>
         </div>
