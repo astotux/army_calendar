@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Дембельский Календарь</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#0f172a">
+</head>
+<body>
+    <div id="app">
+        <!-- Экран настройки (первый вход) -->
+        <div id="setup-screen" class="screen hidden">
+            <div class="header-icon">🎖</div>
+            <h1>Дембель не за горами</h1>
+            <p>Укажите дату, когда вы отправились на службу. Мы будем считать каждый день до вашего возвращения.</p>
+            <div class="input-group">
+                <input type="date" id="start-date-input" required>
+            </div>
+            <button id="save-btn" class="btn">Начать отсчет</button>
+        </div>
+
+        <!-- Главный экран календаря -->
+        <div id="main-screen" class="screen hidden">
+            <header>
+                <h2>До дома осталось</h2>
+                <div class="percentage-wrapper">
+                    <div class="percentage" id="percentage-display">0%</div>
+                </div>
+            </header>
+
+            <div class="progress-section">
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progress-bar">
+                        <div class="progress-glow"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-section">
+                <div class="stat-card passed">
+                    <span class="stat-value" id="days-passed">0</span>
+                    <span class="stat-label">Прошло дней</span>
+                </div>
+                <div class="stat-card remaining">
+                    <span class="stat-value" id="days-remaining">365</span>
+                    <span class="stat-label">Осталось дней</span>
+                </div>
+            </div>
+            
+            <div class="info-section">
+                <div class="info-block">
+                    <span class="info-label">Начало службы</span>
+                    <span class="info-date" id="info-start">--.--.----</span>
+                </div>
+                <div class="info-divider"></div>
+                <div class="info-block" style="align-items: flex-end;">
+                    <span class="info-label">Дембель</span>
+                    <span class="info-date" id="info-end">--.--.----</span>
+                </div>
+            </div>
+
+            <button id="reset-btn" class="btn btn-secondary">Изменить дату</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
