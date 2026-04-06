@@ -14,10 +14,6 @@
 
 <body>
     <div id="app">
-        <div class="today-bar" id="today-bar">
-            <span class="today-bar__label">Сегодня:</span>
-            <span class="today-bar__date" id="today-date">--.--.----</span>
-        </div>
         <!-- Экран настройки (первый вход) -->
         <div id="setup-screen" class="screen hidden">
             <div class="header-icon">🎖</div>
@@ -62,6 +58,10 @@
 
         <!-- Главный экран календаря -->
         <div id="main-screen" class="screen hidden">
+            <div class="today-bar" id="today-bar">
+                <span class="today-bar__label">Сегодня:</span>
+                <span class="today-bar__date" id="today-date">--.--.----</span>
+            </div>
             <header>
                 <h2>До дома осталось</h2>
                 <div class="percentage-wrapper">
@@ -102,8 +102,8 @@
                 <button id="reveal-btn" class="btn" style="padding: 12px 24px; font-size: 0.95rem;">Закрасить</button>
             </div>
 
-            <button id="open-minigame-btn" class="btn btn-secondary" style="margin-top: 8px;">
-                Мини‑игра
+            <button id="open-minigame-btn" class="btn btn-minigames" style="margin-top: 8px;">
+                Мини‑игры
             </button>
             <div class="settings-drawer" id="settings-drawer">
                 <div class="settings-toggle" id="settings-toggle">
@@ -119,14 +119,37 @@
             </div>
         </div>
 
-        <!-- Экран мини-игры -->
+        <!-- Экран мини-игр -->
         <div id="minigame-screen" class="screen hidden">
             <header>
-                <h1 style="margin-bottom: 0;">Мини‑игра: Тир</h1>
-                <p style="margin-top: -10px;">Жми по мишени!</p>
+                <h1 style="margin-bottom: 0;">Мини‑игры</h1>
+                <p>Выбери игру и побей рекорд</p>
             </header>
 
-            <div class="minigame-panel">
+            <div class="minigame-menu" id="mg-menu">
+                <button class="minigame-card" id="mg-pick-shoot" type="button">
+                    <div class="minigame-card__title">Тир</div>
+                    <div class="minigame-card__desc">Жми по мишени.</div>
+                    <div class="minigame-card__meta">Рекорд: <span id="mg-best-shoot">0</span></div>
+                </button>
+                <button class="minigame-card" id="mg-pick-pairs" type="button">
+                    <div class="minigame-card__title">Пары</div>
+                    <div class="minigame-card__desc">Открой одинаковые карточки.</div>
+                    <div class="minigame-card__meta">Рекорд: <span id="mg-best-pairs">0</span></div>
+                </button>
+                <button class="minigame-card" id="mg-pick-math" type="button">
+                    <div class="minigame-card__title">Быстрый счёт</div>
+                    <div class="minigame-card__desc">Решай примеры на скорость.</div>
+                    <div class="minigame-card__meta">Рекорд: <span id="mg-best-math">0</span></div>
+                </button>
+                <button id="mg-back-btn" class="btn btn-secondary">Назад</button>
+            </div>
+
+            <!-- Game: Shooting -->
+            <div class="minigame-panel hidden" id="mg-shoot">
+                <header class="minigame-subheader">
+                    <h2 style="color:var(--text-main); margin:0;">Тир</h2>
+                </header>
                 <div class="minigame-stats">
                     <div class="minigame-stat">
                         <div class="minigame-stat__label">Счёт</div>
@@ -141,15 +164,69 @@
                         <div class="minigame-stat__value" id="mg-best">0</div>
                     </div>
                 </div>
-
                 <div class="minigame-arena" id="mg-arena" role="button" aria-label="Игровое поле">
                     <button class="minigame-target hidden" id="mg-target" type="button" aria-label="Мишень"></button>
                     <div class="minigame-hint" id="mg-hint">Нажми «Старт»</div>
                 </div>
-
                 <div class="minigame-actions">
-                    <button id="mg-start-btn" class="btn">Старт</button>
-                    <button id="mg-back-btn" class="btn btn-secondary">Назад</button>
+                    <button id="mg-back-btn-shoot" class="btn btn-secondary" type="button">Назад</button>
+                    <button id="mg-start-btn" class="btn" type="button">Старт</button>
+                </div>
+            </div>
+
+            <!-- Game: Pairs -->
+            <div class="minigame-panel hidden" id="mg-pairs">
+                <header class="minigame-subheader">
+                    <h2 style="color:var(--text-main); margin:0;">Пары</h2>
+                </header>
+                <div class="minigame-stats">
+                    <div class="minigame-stat">
+                        <div class="minigame-stat__label">Найдено</div>
+                        <div class="minigame-stat__value" id="pairs-found">0</div>
+                    </div>
+                    <div class="minigame-stat">
+                        <div class="minigame-stat__label">Время</div>
+                        <div class="minigame-stat__value" id="pairs-time">60</div>
+                    </div>
+                    <div class="minigame-stat">
+                        <div class="minigame-stat__label">Рекорд</div>
+                        <div class="minigame-stat__value" id="pairs-best">0</div>
+                    </div>
+                </div>
+                <div class="pairs-grid" id="pairs-grid" aria-label="Поле игры Пары"></div>
+                <div class="minigame-actions">
+                    <button id="pairs-back-btn" class="btn btn-secondary" type="button">Назад</button>
+                    <button id="pairs-start-btn" class="btn" type="button">Старт</button>
+                </div>
+            </div>
+
+            <!-- Game: Math -->
+            <div class="minigame-panel hidden" id="mg-math">
+                <header class="minigame-subheader">
+                    <h2 style="color:var(--text-main); margin:0;">Быстрый счёт</h2>
+                </header>
+                <div class="minigame-stats">
+                    <div class="minigame-stat">
+                        <div class="minigame-stat__label">Верно</div>
+                        <div class="minigame-stat__value" id="math-score">0</div>
+                    </div>
+                    <div class="minigame-stat">
+                        <div class="minigame-stat__label">Время</div>
+                        <div class="minigame-stat__value" id="math-time">30</div>
+                    </div>
+                    <div class="minigame-stat">
+                        <div class="minigame-stat__label">Рекорд</div>
+                        <div class="minigame-stat__value" id="math-best">0</div>
+                    </div>
+                </div>
+                <div class="math-card">
+                    <div class="math-problem" id="math-problem">—</div>
+                    <input class="math-input" id="math-input" inputmode="numeric" placeholder="Ответ" />
+                    <div class="minigame-actions">
+                        <button id="math-back-btn" class="btn btn-secondary" type="button">Назад</button>
+                        <button id="math-start-btn" class="btn" type="button">Старт</button>
+                    </div>
+                    <div class="math-hint" id="math-hint"></div>
                 </div>
             </div>
         </div>

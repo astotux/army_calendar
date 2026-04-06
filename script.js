@@ -41,10 +41,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const calPrev = document.getElementById('cal-prev');
     const calNext = document.getElementById('cal-next');
 
-    // Mini-game elements
+    // Mini-games elements
     const minigameScreen = document.getElementById('minigame-screen');
     const openMinigameBtn = document.getElementById('open-minigame-btn');
+
+    const mgMenu = document.getElementById('mg-menu');
+    const mgPickShoot = document.getElementById('mg-pick-shoot');
+    const mgPickPairs = document.getElementById('mg-pick-pairs');
+    const mgPickMath = document.getElementById('mg-pick-math');
     const mgBackBtn = document.getElementById('mg-back-btn');
+
+    const mgShoot = document.getElementById('mg-shoot');
+    const mgPairs = document.getElementById('mg-pairs');
+    const mgMath = document.getElementById('mg-math');
+
+    const mgBackBtnShoot = document.getElementById('mg-back-btn-shoot');
+    const pairsBackBtn = document.getElementById('pairs-back-btn');
+    const mathBackBtn = document.getElementById('math-back-btn');
+
+    // Menu best labels
+    const mgBestShootMenu = document.getElementById('mg-best-shoot');
+    const mgBestPairsMenu = document.getElementById('mg-best-pairs');
+    const mgBestMathMenu = document.getElementById('mg-best-math');
+
+    // Game: Shooting
     const mgStartBtn = document.getElementById('mg-start-btn');
     const mgArena = document.getElementById('mg-arena');
     const mgTarget = document.getElementById('mg-target');
@@ -52,6 +72,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const mgScoreEl = document.getElementById('mg-score');
     const mgTimeEl = document.getElementById('mg-time');
     const mgBestEl = document.getElementById('mg-best');
+
+    // Game: Pairs
+    const pairsGrid = document.getElementById('pairs-grid');
+    const pairsStartBtn = document.getElementById('pairs-start-btn');
+    const pairsFoundEl = document.getElementById('pairs-found');
+    const pairsTimeEl = document.getElementById('pairs-time');
+    const pairsBestEl = document.getElementById('pairs-best');
+
+    // Game: Math
+    const mathProblemEl = document.getElementById('math-problem');
+    const mathInput = document.getElementById('math-input');
+    const mathStartBtn = document.getElementById('math-start-btn');
+    const mathHintEl = document.getElementById('math-hint');
+    const mathScoreEl = document.getElementById('math-score');
+    const mathTimeEl = document.getElementById('math-time');
+    const mathBestEl = document.getElementById('math-best');
 
     const monthNames = [
         "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
@@ -104,23 +140,63 @@ document.addEventListener('DOMContentLoaded', () => {
         paintModal.classList.add('hidden');
     });
 
-    // Mini-game navigation
+    // Mini-games navigation
     if (openMinigameBtn && minigameScreen) {
         openMinigameBtn.addEventListener('click', () => {
-            stopMinigame(true);
-            if (mgBestEl) mgBestEl.textContent = String(getMinigameBest());
+            stopAllMinigames(true);
+            refreshMinigamesBests();
+            showMinigamesMenu();
             switchScreen(mainScreen, minigameScreen);
         });
     }
 
     if (mgBackBtn && minigameScreen) {
         mgBackBtn.addEventListener('click', () => {
-            stopMinigame(true);
+            stopAllMinigames(true);
             switchScreen(minigameScreen, mainScreen);
         });
     }
 
-    // Mini-game: Shooting range
+    if (mgPickShoot) mgPickShoot.addEventListener('click', () => openMinigame('shoot'));
+    if (mgPickPairs) mgPickPairs.addEventListener('click', () => openMinigame('pairs'));
+    if (mgPickMath) mgPickMath.addEventListener('click', () => openMinigame('math'));
+
+    if (mgBackBtnShoot) mgBackBtnShoot.addEventListener('click', () => { stopAllMinigames(true); showMinigamesMenu(); });
+    if (pairsBackBtn) pairsBackBtn.addEventListener('click', () => { stopAllMinigames(true); showMinigamesMenu(); });
+    if (mathBackBtn) mathBackBtn.addEventListener('click', () => { stopAllMinigames(true); showMinigamesMenu(); });
+
+    function showMinigamesMenu() {
+        if (mgMenu) mgMenu.classList.remove('hidden');
+        if (mgShoot) mgShoot.classList.add('hidden');
+        if (mgPairs) mgPairs.classList.add('hidden');
+        if (mgMath) mgMath.classList.add('hidden');
+    }
+
+    function openMinigame(which) {
+        refreshMinigamesBests();
+        if (mgMenu) mgMenu.classList.add('hidden');
+        if (mgShoot) mgShoot.classList.toggle('hidden', which !== 'shoot');
+        if (mgPairs) mgPairs.classList.toggle('hidden', which !== 'pairs');
+        if (mgMath) mgMath.classList.toggle('hidden', which !== 'math');
+
+        if (which === 'shoot') stopMinigame(true);
+        if (which === 'pairs') stopPairsGame(true);
+        if (which === 'math') stopMathGame(true);
+    }
+
+    function refreshMinigamesBests() {
+        const s = getShootBest();
+        const p = getPairsBest();
+        const m = getMathBest();
+        if (mgBestShootMenu) mgBestShootMenu.textContent = String(s);
+        if (mgBestPairsMenu) mgBestPairsMenu.textContent = String(p);
+        if (mgBestMathMenu) mgBestMathMenu.textContent = String(m);
+        if (mgBestEl) mgBestEl.textContent = String(s);
+        if (pairsBestEl) pairsBestEl.textContent = String(p);
+        if (mathBestEl) mathBestEl.textContent = String(m);
+    }
+
+    // Game 1: Shooting range
     const MINIGAME_DURATION = 30;
     let mgRunning = false;
     let mgScore = 0;
@@ -137,6 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+
     if (mgTarget) {
         mgTarget.addEventListener('click', (e) => {
             e.preventDefault();
@@ -145,12 +222,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function getMinigameBest() {
-        return Number(localStorage.getItem('army_minigame_best') || '0') || 0;
+    function getShootBest() {
+        return Number(localStorage.getItem('army_minigame_best_shoot') || '0') || 0;
     }
 
-    function setMinigameBest(val) {
-        localStorage.setItem('army_minigame_best', String(val));
+    function setShootBest(val) {
+        localStorage.setItem('army_minigame_best_shoot', String(val));
     }
 
     function setMinigameUI(score, timeLeft, hintText) {
@@ -194,15 +271,16 @@ document.addEventListener('DOMContentLoaded', () => {
         mgSpawnTimeout = null;
         if (mgTarget) mgTarget.classList.add('hidden');
         if (mgStartBtn) mgStartBtn.textContent = 'Старт';
-        if (resetUI) setMinigameUI(0, MINIGAME_DURATION, 'Нажми «Старт»');
+        if (resetUI) setMinigameUI(0, MINIGAME_DURATION, '');
     }
 
     function finishMinigame() {
         stopMinigame(false);
-        const best = getMinigameBest();
-        if (mgScore > best) setMinigameBest(mgScore);
+        const best = getShootBest();
+        if (mgScore > best) setShootBest(mgScore);
         if (mgBestEl) mgBestEl.textContent = String(Math.max(best, mgScore));
         setMinigameUI(mgScore, 0, `Время вышло! Счёт: ${mgScore}`);
+        refreshMinigamesBests();
     }
 
     function randomInt(min, max) {
@@ -252,6 +330,253 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const nextIn = randomInt(90, 240);
         mgSpawnTimeout = setTimeout(spawnTarget, nextIn);
+    }
+
+    // Game 2: Pairs (memory)
+    const PAIRS_DURATION = 60;
+    let pairsRunning = false;
+    let pairsFound = 0;
+    let pairsTimeLeft = PAIRS_DURATION;
+    let pairsInterval = null;
+    let pairsLock = false;
+    let pairsFirst = null;
+    let pairsSecond = null;
+    let pairsDeck = [];
+
+    if (pairsStartBtn) pairsStartBtn.addEventListener('click', () => { if (!pairsRunning) startPairsGame(); });
+
+    function getPairsBest() {
+        return Number(localStorage.getItem('army_minigame_best_pairs') || '0') || 0;
+    }
+
+    function setPairsBest(val) {
+        localStorage.setItem('army_minigame_best_pairs', String(val));
+    }
+
+    function setPairsUI() {
+        if (pairsFoundEl) pairsFoundEl.textContent = String(pairsFound);
+        if (pairsTimeEl) pairsTimeEl.textContent = String(pairsTimeLeft);
+    }
+
+    function buildPairsDeck() {
+        const symbols = ['🪖', '🎖️', '⭐', '🔥', '⚡', '🧨', '🎯', '🏆'];
+        const deck = [...symbols, ...symbols].map((v, idx) => ({ id: idx, value: v }));
+        for (let i = deck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [deck[i], deck[j]] = [deck[j], deck[i]];
+        }
+        return deck;
+    }
+
+    function renderPairsGrid() {
+        if (!pairsGrid) return;
+        pairsGrid.innerHTML = '';
+        pairsDeck.forEach((card, index) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'pair-card';
+            btn.dataset.index = String(index);
+            btn.textContent = card.value;
+            btn.addEventListener('click', () => onPairClick(index, btn));
+            pairsGrid.appendChild(btn);
+        });
+    }
+
+    function startPairsGame() {
+        pairsRunning = true;
+        pairsFound = 0;
+        pairsTimeLeft = PAIRS_DURATION;
+        pairsLock = false;
+        pairsFirst = null;
+        pairsSecond = null;
+        pairsDeck = buildPairsDeck();
+        renderPairsGrid();
+        setPairsUI();
+        if (pairsStartBtn) pairsStartBtn.textContent = 'Идёт...';
+        pairsInterval = setInterval(() => {
+            pairsTimeLeft -= 1;
+            setPairsUI();
+            if (pairsTimeLeft <= 0) finishPairsGame(false);
+        }, 1000);
+    }
+
+    function stopPairsGame(resetUI) {
+        pairsRunning = false;
+        if (pairsInterval) clearInterval(pairsInterval);
+        pairsInterval = null;
+        pairsLock = false;
+        pairsFirst = null;
+        pairsSecond = null;
+        if (pairsStartBtn) pairsStartBtn.textContent = 'Старт';
+        if (resetUI) {
+            pairsFound = 0;
+            pairsTimeLeft = PAIRS_DURATION;
+            if (pairsGrid) pairsGrid.innerHTML = '';
+            setPairsUI();
+        }
+    }
+
+    function finishPairsGame(won) {
+        stopPairsGame(false);
+        const score = pairsFound; // 0..8
+        const best = getPairsBest();
+        if (score > best) setPairsBest(score);
+        if (pairsBestEl) pairsBestEl.textContent = String(Math.max(best, score));
+        refreshMinigamesBests();
+        if (pairsGrid) {
+            const msg = document.createElement('div');
+            msg.className = 'minigame-hint';
+            msg.textContent = won ? `Победа! Пары: ${score}/8` : `Время вышло! Пары: ${score}/8`;
+            pairsGrid.innerHTML = '';
+            pairsGrid.appendChild(msg);
+        }
+    }
+
+    function onPairClick(index, btnEl) {
+        if (!pairsRunning || pairsLock) return;
+        if (btnEl.classList.contains('matched') || btnEl.classList.contains('revealed')) return;
+
+        btnEl.classList.add('revealed');
+        if (pairsFirst === null) {
+            pairsFirst = { index, el: btnEl };
+            return;
+        }
+        pairsSecond = { index, el: btnEl };
+        pairsLock = true;
+
+        const a = pairsDeck[pairsFirst.index].value;
+        const b = pairsDeck[pairsSecond.index].value;
+        if (a === b) {
+            pairsFirst.el.classList.add('matched');
+            pairsSecond.el.classList.add('matched');
+            pairsFirst = null;
+            pairsSecond = null;
+            pairsLock = false;
+            pairsFound += 1;
+            setPairsUI();
+            if (pairsFound >= 8) finishPairsGame(true);
+        } else {
+            setTimeout(() => {
+                pairsFirst?.el.classList.remove('revealed');
+                pairsSecond?.el.classList.remove('revealed');
+                pairsFirst = null;
+                pairsSecond = null;
+                pairsLock = false;
+            }, 520);
+        }
+    }
+
+    // Game 3: Fast math
+    const MATH_DURATION = 30;
+    let mathRunning = false;
+    let mathScore = 0;
+    let mathTimeLeft = MATH_DURATION;
+    let mathInterval = null;
+    let currentMath = null;
+
+    if (mathStartBtn) {
+        mathStartBtn.addEventListener('click', () => {
+            if (!mathRunning) startMathGame();
+            else submitMath();
+        });
+    }
+    if (mathInput) {
+        mathInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') submitMath();
+        });
+    }
+
+    function getMathBest() {
+        return Number(localStorage.getItem('army_minigame_best_math') || '0') || 0;
+    }
+
+    function setMathBest(val) {
+        localStorage.setItem('army_minigame_best_math', String(val));
+    }
+
+    function setMathUI(hint) {
+        if (mathScoreEl) mathScoreEl.textContent = String(mathScore);
+        if (mathTimeEl) mathTimeEl.textContent = String(mathTimeLeft);
+        if (mathHintEl) mathHintEl.textContent = hint || '';
+    }
+
+    function nextMathProblem() {
+        let a = randomInt(3, 29);
+        let b = randomInt(3, 29);
+        const op = Math.random() < 0.55 ? '+' : '-';
+        if (op === '-' && b > a) [a, b] = [b, a]; // avoid negative results (mobile keypad often has no minus)
+        const res = op === '+' ? a + b : a - b;
+        currentMath = { a, b, op, res };
+        if (mathProblemEl) mathProblemEl.textContent = `${a} ${op} ${b} = ?`;
+    }
+
+    function startMathGame() {
+        mathRunning = true;
+        mathScore = 0;
+        mathTimeLeft = MATH_DURATION;
+        setMathUI('');
+        if (mathStartBtn) mathStartBtn.textContent = 'Ок';
+        nextMathProblem();
+        if (mathInput) {
+            mathInput.value = '';
+            mathInput.focus();
+        }
+        mathInterval = setInterval(() => {
+            mathTimeLeft -= 1;
+            if (mathTimeEl) mathTimeEl.textContent = String(mathTimeLeft);
+            if (mathTimeLeft <= 0) finishMathGame();
+        }, 1000);
+    }
+
+    function stopMathGame(resetUI) {
+        mathRunning = false;
+        if (mathInterval) clearInterval(mathInterval);
+        mathInterval = null;
+        currentMath = null;
+        if (mathStartBtn) mathStartBtn.textContent = 'Старт';
+        if (resetUI) {
+            mathScore = 0;
+            mathTimeLeft = MATH_DURATION;
+            if (mathProblemEl) mathProblemEl.textContent = '—';
+            if (mathInput) mathInput.value = '';
+            if (mathHintEl) mathHintEl.textContent = '';
+            if (mathScoreEl) mathScoreEl.textContent = '0';
+            if (mathTimeEl) mathTimeEl.textContent = String(MATH_DURATION);
+        }
+    }
+
+    function finishMathGame() {
+        stopMathGame(false);
+        const best = getMathBest();
+        if (mathScore > best) setMathBest(mathScore);
+        if (mathBestEl) mathBestEl.textContent = String(Math.max(best, mathScore));
+        if (mathHintEl) mathHintEl.textContent = `Время вышло! Верно: ${mathScore}`;
+        refreshMinigamesBests();
+    }
+
+    function submitMath() {
+        if (!mathRunning || !currentMath) return;
+        const raw = (mathInput?.value || '').trim().replace(',', '.').replace(/\s+/g, '');
+        const val = raw === '' ? NaN : Number(raw);
+        if (mathInput) mathInput.value = '';
+        if (!Number.isFinite(val)) return;
+        if (val === currentMath.res) {
+            mathScore += 1;
+            if (mathScoreEl) mathScoreEl.textContent = String(mathScore);
+            nextMathProblem();
+        } else {
+            // penalty: -2 seconds
+            mathTimeLeft = Math.max(0, mathTimeLeft - 2);
+            if (mathTimeEl) mathTimeEl.textContent = String(mathTimeLeft);
+            if (mathHintEl) mathHintEl.textContent = 'Неверно (-2 сек)';
+            if (mathTimeLeft <= 0) finishMathGame();
+        }
+    }
+
+    function stopAllMinigames(resetUI) {
+        stopMinigame(resetUI);
+        stopPairsGame(resetUI);
+        stopMathGame(resetUI);
     }
 
     const revealBtn = document.getElementById('reveal-btn');
