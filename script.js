@@ -328,8 +328,8 @@ document.addEventListener('DOMContentLoaded', () => {
         mgScore += points;
         if (mgScoreEl) mgScoreEl.textContent = String(mgScore);
 
-        const nextIn = randomInt(90, 240);
-        mgSpawnTimeout = setTimeout(spawnTarget, nextIn);
+        // Spawn next target immediately after a hit
+        mgSpawnTimeout = setTimeout(spawnTarget, 0);
     }
 
     // Game 2: Pairs (memory)
