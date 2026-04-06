@@ -101,10 +101,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Top today date + weekly theme colors
+    // Top today date + monthly theme colors
     const todayDateEl = document.getElementById('today-date');
     if (todayDateEl) todayDateEl.textContent = formatDate(today);
-    applyWeeklyTheme(today);
+    applyMonthlyTheme(today);
 
     // Initialization
     initGifs();
@@ -977,46 +977,37 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${dd}.${mm}.${yyyy}`;
     }
 
-    function getISOWeek(dateObj) {
-        const d = new Date(dateObj);
-        d.setHours(0, 0, 0, 0);
-        // Thursday in current week decides the year.
-        d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7));
-        const week1 = new Date(d.getFullYear(), 0, 4);
-        week1.setHours(0, 0, 0, 0);
-        return 1 + Math.round(((d - week1) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
-    }
-
-    function applyWeeklyTheme(dateObj) {
+    function applyMonthlyTheme(dateObj) {
+        // 12 palettes: one per month (0=Jan ... 11=Dec)
         const palettes = [
-            {
-                bg: '#1a1c14', surface: '#272c19', surfaceLight: '#4b5320',
-                primary: '#6b8e23', stripeA: '#4b5320', stripeB: '#556b2f', success: '#8fbc8f'
-            }, // olive classic
-            {
-                bg: '#07131d', surface: '#0b2233', surfaceLight: '#134b6a',
-                primary: '#0ea5e9', stripeA: '#0ea5e9', stripeB: '#0284c7', success: '#22c55e'
-            }, // sky
-            {
-                bg: '#140b1f', surface: '#23113a', surfaceLight: '#3b1f63',
-                primary: '#a855f7', stripeA: '#a855f7', stripeB: '#7c3aed', success: '#34d399'
-            }, // violet
-            {
-                bg: '#1a1208', surface: '#2b1c0a', surfaceLight: '#5a3a12',
-                primary: '#f59e0b', stripeA: '#f59e0b', stripeB: '#d97706', success: '#84cc16'
-            }, // amber
-            {
-                bg: '#19090b', surface: '#2a0f12', surfaceLight: '#5a1b22',
-                primary: '#ef4444', stripeA: '#ef4444', stripeB: '#b91c1c', success: '#22c55e'
-            }, // red
-            {
-                bg: '#061511', surface: '#0b241e', surfaceLight: '#13453a',
-                primary: '#10b981', stripeA: '#10b981', stripeB: '#059669', success: '#8fbc8f'
-            }, // emerald
+            // Январь: морозный синий
+            { bg: '#06131f', surface: '#0b2336', surfaceLight: '#1a4c6a', primary: '#38bdf8', stripeA: '#38bdf8', stripeB: '#0ea5e9', success: '#22c55e' },
+            // Февраль: лиловый/индиго (холодный)
+            { bg: '#120a24', surface: '#1d103b', surfaceLight: '#3a1a73', primary: '#818cf8', stripeA: '#818cf8', stripeB: '#6366f1', success: '#34d399' },
+            // Март: первая зелень
+            { bg: '#07150d', surface: '#0c2316', surfaceLight: '#1f4b33', primary: '#22c55e', stripeA: '#22c55e', stripeB: '#16a34a', success: '#86efac' },
+            // Апрель: свежая мята
+            { bg: '#061513', surface: '#0b241f', surfaceLight: '#145a4c', primary: '#2dd4bf', stripeA: '#2dd4bf', stripeB: '#14b8a6', success: '#a7f3d0' },
+            // Май: яркая весна (лайм)
+            { bg: '#111a06', surface: '#1c2a0a', surfaceLight: '#3f6a12', primary: '#84cc16', stripeA: '#84cc16', stripeB: '#65a30d', success: '#bbf7d0' },
+            // Июнь: солнце (жёлтый)
+            { bg: '#1a1406', surface: '#2a1f0a', surfaceLight: '#6a4b12', primary: '#fbbf24', stripeA: '#fbbf24', stripeB: '#f59e0b', success: '#22c55e' },
+            // Июль: жаркий оранжевый
+            { bg: '#1a0f06', surface: '#2a170a', surfaceLight: '#6a2f12', primary: '#fb923c', stripeA: '#fb923c', stripeB: '#f97316', success: '#4ade80' },
+            // Август: золотой/урожай
+            { bg: '#161006', surface: '#241a0b', surfaceLight: '#5a3a12', primary: '#f59e0b', stripeA: '#f59e0b', stripeB: '#d97706', success: '#84cc16' },
+            // Сентябрь: янтарь + спокойнее
+            { bg: '#140f0a', surface: '#231a12', surfaceLight: '#5a3b22', primary: '#f97316', stripeA: '#f97316', stripeB: '#ea580c', success: '#22c55e' },
+            // Октябрь: бордо/осень
+            { bg: '#16080c', surface: '#241016', surfaceLight: '#5a1b2a', primary: '#f43f5e', stripeA: '#f43f5e', stripeB: '#e11d48', success: '#22c55e' },
+            // Ноябрь: сталь/серый
+            { bg: '#0b1117', surface: '#121c26', surfaceLight: '#24384a', primary: '#94a3b8', stripeA: '#94a3b8', stripeB: '#64748b', success: '#22c55e' },
+            // Декабрь: ночной синий
+            { bg: '#050b1a', surface: '#0b1230', surfaceLight: '#1a2b6a', primary: '#60a5fa', stripeA: '#60a5fa', stripeB: '#3b82f6', success: '#34d399' },
         ];
 
-        const week = getISOWeek(dateObj);
-        const p = palettes[(week - 1) % palettes.length];
+        const monthIdx = new Date(dateObj).getMonth();
+        const p = palettes[monthIdx % 12];
 
         const root = document.documentElement;
         root.style.setProperty('--bg-color', p.bg);
