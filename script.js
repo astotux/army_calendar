@@ -52,6 +52,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    // Top today date + weekly theme colors
+    const todayDateEl = document.getElementById('today-date');
+    if (todayDateEl) todayDateEl.textContent = formatDate(today);
+    applyWeeklyTheme(today);
+
     // Initialization
     initGifs();
 
@@ -145,14 +150,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function initCanvas() {
         const container = document.querySelector('.canvas-container');
-        container.innerHTML = '<canvas id="paint-canvas"></canvas>';
+        const dayNumber = String((currentPaintingDayIdx ?? 0) + 1);
+        container.innerHTML = `
+            <div class="paint-day-number" aria-hidden="true">${dayNumber}</div>
+            <canvas id="paint-canvas"></canvas>
+        `;
         const c = document.getElementById('paint-canvas');
         const ctx = c.getContext('2d');
 
         c.width = container.clientWidth;
         c.height = container.clientHeight;
 
-        ctx.fillStyle = '#272c19';
+        const cover = getComputedStyle(document.documentElement).getPropertyValue('--surface-color').trim();
+        ctx.fillStyle = cover;
         ctx.fillRect(0, 0, c.width, c.height);
 
         ctx.lineCap = 'round';
@@ -463,6 +473,87 @@ document.addEventListener('DOMContentLoaded', () => {
         const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
         const yyyy = dateObj.getFullYear();
         return `${dd}.${mm}.${yyyy}`;
+    }
+
+    function getISOWeek(dateObj) {
+        const d = new Date(dateObj);
+        d.setHours(0, 0, 0, 0);
+        // Thursday in current week decides the year.
+        d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7));
+        const week1 = new Date(d.getFullYear(), 0, 4);
+        week1.setHours(0, 0, 0, 0);
+        return 1 + Math.round(((d - week1) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
+    }
+
+    function applyWeeklyTheme(dateObj) {
+        const palettes = [
+            {
+                bg: '#1a1c14', surface: '#272c19', surfaceLight: '#4b5320',
+                primary: '#6b8e23', stripeA: '#4b5320', stripeB: '#556b2f', success: '#8fbc8f'
+            }, // olive classic
+            {
+                bg: '#07131d', surface: '#0b2233', surfaceLight: '#134b6a',
+                primary: '#0ea5e9', stripeA: '#0ea5e9', stripeB: '#0284c7', success: '#22c55e'
+            }, // sky
+            {
+                bg: '#140b1f', surface: '#23113a', surfaceLight: '#3b1f63',
+                primary: '#a855f7', stripeA: '#a855f7', stripeB: '#7c3aed', success: '#34d399'
+            }, // violet
+            {
+                bg: '#1a1208', surface: '#2b1c0a', surfaceLight: '#5a3a12',
+                primary: '#f59e0b', stripeA: '#f59e0b', stripeB: '#d97706', success: '#84cc16'
+            }, // amber
+            {
+                bg: '#19090b', surface: '#2a0f12', surfaceLight: '#5a1b22',
+                primary: '#ef4444', stripeA: '#ef4444', stripeB: '#b91c1c', success: '#22c55e'
+            }, // red
+            {
+                bg: '#061511', surface: '#0b241e', surfaceLight: '#13453a',
+                primary: '#10b981', stripeA: '#10b981', stripeB: '#059669', success: '#8fbc8f'
+            }, // emerald
+        ];
+
+        const week = getISOWeek(dateObj);
+        const p = palettes[(week - 1) % palettes.length];
+
+        const root = document.documentElement;
+        root.style.setProperty('--bg-color', p.bg);
+        root.style.setProperty('--surface-color', p.surface);
+        root.style.setProperty('--surface-light', p.surfaceLight);
+        root.style.setProperty('--primary-color', p.primary);
+        root.style.setProperty('--primary-gradient', `linear-gradient(135deg, ${shade(p.primary, -12)}, ${shade(p.primary, -22)})`);
+        root.style.setProperty('--primary-glow', hexToRgba(p.primary, 0.35));
+        root.style.setProperty('--success-color', p.success);
+        root.style.setProperty('--stripe-a', p.stripeA);
+        root.style.setProperty('--stripe-b', p.stripeB);
+
+        const themeMeta = document.querySelector('meta[name="theme-color"]');
+        if (themeMeta) themeMeta.setAttribute('content', getComputedStyle(root).getPropertyValue('--bg-color').trim() || '#1a1c14');
+    }
+
+    function hexToRgba(hex, alpha) {
+        const h = hex.replace('#', '').trim();
+        const full = h.length === 3 ? h.split('').map(ch => ch + ch).join('') : h;
+        const num = parseInt(full, 16);
+        const r = (num >> 16) & 255;
+        const g = (num >> 8) & 255;
+        const b = num & 255;
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    function shade(hex, percent) {
+        const h = hex.replace('#', '').trim();
+        const full = h.length === 3 ? h.split('').map(ch => ch + ch).join('') : h;
+        const num = parseInt(full, 16);
+        const r = (num >> 16) & 255;
+        const g = (num >> 8) & 255;
+        const b = num & 255;
+        const t = percent < 0 ? 0 : 255;
+        const p = Math.abs(percent) / 100;
+        const nr = Math.round((t - r) * p) + r;
+        const ng = Math.round((t - g) * p) + g;
+        const nb = Math.round((t - b) * p) + b;
+        return `#${(1 << 24 | (nr << 16) | (ng << 8) | nb).toString(16).slice(1)}`;
     }
 
     function animateValue(obj, start, end, duration) {
