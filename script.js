@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const percentageDisplay = document.getElementById('percentage-display');
     const daysPassedEl = document.getElementById('days-passed');
     const daysRemainingEl = document.getElementById('days-remaining');
+    const monthsPassedEl = document.getElementById('months-passed');
     const infoStart = document.getElementById('info-start');
     const infoEnd = document.getElementById('info-end');
 
@@ -928,6 +929,7 @@ document.addEventListener('DOMContentLoaded', () => {
             daysPassedEl.style.color = "var(--text-main)";
             daysPassedEl.textContent = '?';
             daysRemainingEl.textContent = '?';
+            if (monthsPassedEl) monthsPassedEl.textContent = '?';
             percentageDisplay.textContent = '?%';
             progressBar.style.width = '0%';
 
@@ -936,6 +938,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             daysPassedEl.style.color = "var(--success-color)";
             daysPassedEl.textContent = paintedCount;
+            if (monthsPassedEl) monthsPassedEl.textContent = String(calcFullMonthsPassed(startDate, today));
 
             const revealContainer = document.getElementById('reveal-btn-container');
             if (revealContainer) revealContainer.style.display = 'none';
@@ -953,6 +956,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         infoStart.textContent = formatDate(startDate);
         infoEnd.textContent = formatDate(endDate);
+    }
+
+    function calcFullMonthsPassed(fromDate, toDate) {
+        // Full calendar months elapsed (e.g. 15 Jan -> 14 Feb = 0, -> 15 Feb = 1)
+        const fromY = fromDate.getFullYear();
+        const fromM = fromDate.getMonth();
+        const toY = toDate.getFullYear();
+        const toM = toDate.getMonth();
+        let months = (toY - fromY) * 12 + (toM - fromM);
+        if (toDate.getDate() < fromDate.getDate()) months -= 1;
+        if (months < 0) months = 0;
+        return months;
     }
 
     function formatDate(dateObj) {
