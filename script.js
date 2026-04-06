@@ -41,6 +41,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const calPrev = document.getElementById('cal-prev');
     const calNext = document.getElementById('cal-next');
 
+    // Mini-game elements
+    const minigameScreen = document.getElementById('minigame-screen');
+    const openMinigameBtn = document.getElementById('open-minigame-btn');
+    const mgBackBtn = document.getElementById('mg-back-btn');
+    const mgStartBtn = document.getElementById('mg-start-btn');
+    const mgArena = document.getElementById('mg-arena');
+    const mgTarget = document.getElementById('mg-target');
+    const mgHint = document.getElementById('mg-hint');
+    const mgScoreEl = document.getElementById('mg-score');
+    const mgTimeEl = document.getElementById('mg-time');
+    const mgBestEl = document.getElementById('mg-best');
+
     const monthNames = [
         "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
         "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"
@@ -91,6 +103,156 @@ document.addEventListener('DOMContentLoaded', () => {
     closePaintBtn.addEventListener('click', () => {
         paintModal.classList.add('hidden');
     });
+
+    // Mini-game navigation
+    if (openMinigameBtn && minigameScreen) {
+        openMinigameBtn.addEventListener('click', () => {
+            stopMinigame(true);
+            if (mgBestEl) mgBestEl.textContent = String(getMinigameBest());
+            switchScreen(mainScreen, minigameScreen);
+        });
+    }
+
+    if (mgBackBtn && minigameScreen) {
+        mgBackBtn.addEventListener('click', () => {
+            stopMinigame(true);
+            switchScreen(minigameScreen, mainScreen);
+        });
+    }
+
+    // Mini-game: Shooting range
+    const MINIGAME_DURATION = 30;
+    let mgRunning = false;
+    let mgScore = 0;
+    let mgTimeLeft = MINIGAME_DURATION;
+    let mgInterval = null;
+    let mgHideTimeout = null;
+    let mgSpawnTimeout = null;
+    let mgSpawnedAt = 0;
+
+    if (mgStartBtn) {
+        mgStartBtn.addEventListener('click', () => {
+            if (mgRunning) return;
+            startMinigame();
+        });
+    }
+
+    if (mgTarget) {
+        mgTarget.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!mgRunning) return;
+            hitTarget();
+        });
+    }
+
+    function getMinigameBest() {
+        return Number(localStorage.getItem('army_minigame_best') || '0') || 0;
+    }
+
+    function setMinigameBest(val) {
+        localStorage.setItem('army_minigame_best', String(val));
+    }
+
+    function setMinigameUI(score, timeLeft, hintText) {
+        if (mgScoreEl) mgScoreEl.textContent = String(score);
+        if (mgTimeEl) mgTimeEl.textContent = String(timeLeft);
+        if (mgHint) {
+            if (hintText) {
+                mgHint.textContent = hintText;
+                mgHint.classList.remove('hidden');
+            } else {
+                mgHint.classList.add('hidden');
+            }
+        }
+    }
+
+    function startMinigame() {
+        mgRunning = true;
+        mgScore = 0;
+        mgTimeLeft = MINIGAME_DURATION;
+        setMinigameUI(mgScore, mgTimeLeft, '');
+        if (mgStartBtn) mgStartBtn.textContent = 'Идёт...';
+
+        spawnTarget();
+
+        mgInterval = setInterval(() => {
+            mgTimeLeft -= 1;
+            if (mgTimeEl) mgTimeEl.textContent = String(mgTimeLeft);
+            if (mgTimeLeft <= 0) {
+                finishMinigame();
+            }
+        }, 1000);
+    }
+
+    function stopMinigame(resetUI) {
+        mgRunning = false;
+        if (mgInterval) clearInterval(mgInterval);
+        if (mgHideTimeout) clearTimeout(mgHideTimeout);
+        if (mgSpawnTimeout) clearTimeout(mgSpawnTimeout);
+        mgInterval = null;
+        mgHideTimeout = null;
+        mgSpawnTimeout = null;
+        if (mgTarget) mgTarget.classList.add('hidden');
+        if (mgStartBtn) mgStartBtn.textContent = 'Старт';
+        if (resetUI) setMinigameUI(0, MINIGAME_DURATION, 'Нажми «Старт»');
+    }
+
+    function finishMinigame() {
+        stopMinigame(false);
+        const best = getMinigameBest();
+        if (mgScore > best) setMinigameBest(mgScore);
+        if (mgBestEl) mgBestEl.textContent = String(Math.max(best, mgScore));
+        setMinigameUI(mgScore, 0, `Время вышло! Счёт: ${mgScore}`);
+    }
+
+    function randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function positionTarget() {
+        if (!mgArena || !mgTarget) return;
+        const rect = mgArena.getBoundingClientRect();
+        const size = mgTarget.offsetWidth || 66;
+        const pad = 10;
+        const maxX = Math.max(pad, Math.floor(rect.width - size - pad));
+        const maxY = Math.max(pad, Math.floor(rect.height - size - pad));
+        const x = randomInt(pad, maxX);
+        const y = randomInt(pad, maxY);
+        mgTarget.style.left = `${x}px`;
+        mgTarget.style.top = `${y}px`;
+    }
+
+    function spawnTarget() {
+        if (!mgRunning || !mgTarget) return;
+        positionTarget();
+        mgSpawnedAt = Date.now();
+        mgTarget.classList.remove('hidden');
+
+        const visibleMs = randomInt(650, 1100);
+        mgHideTimeout = setTimeout(() => {
+            if (!mgRunning) return;
+            mgTarget.classList.add('hidden');
+            const nextIn = randomInt(160, 380);
+            mgSpawnTimeout = setTimeout(spawnTarget, nextIn);
+        }, visibleMs);
+    }
+
+    function hitTarget() {
+        if (!mgTarget) return;
+        mgTarget.classList.add('hidden');
+        if (mgHideTimeout) clearTimeout(mgHideTimeout);
+
+        const reaction = Math.max(0, Date.now() - mgSpawnedAt);
+        // Faster hit => more points (cap between 1..8)
+        let points = 8 - Math.floor(reaction / 140);
+        if (points < 1) points = 1;
+        if (points > 8) points = 8;
+        mgScore += points;
+        if (mgScoreEl) mgScoreEl.textContent = String(mgScore);
+
+        const nextIn = randomInt(90, 240);
+        mgSpawnTimeout = setTimeout(spawnTarget, nextIn);
+    }
 
     const revealBtn = document.getElementById('reveal-btn');
     if (revealBtn) {

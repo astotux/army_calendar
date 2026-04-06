@@ -708,3 +708,94 @@ header {
     align-items: center;
     cursor: pointer;
 }
+
+/* Mini-game */
+.minigame-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.minigame-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.minigame-stat {
+    background-color: var(--bg-color);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    padding: 12px 10px;
+    text-align: center;
+}
+
+.minigame-stat__label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 6px;
+}
+
+.minigame-stat__value {
+    font-size: 1.35rem;
+    font-weight: 900;
+    color: var(--text-main);
+}
+
+.minigame-arena {
+    position: relative;
+    width: 100%;
+    height: 320px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    background:
+        radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.06), transparent 55%),
+        radial-gradient(circle at 80% 65%, rgba(255, 255, 255, 0.05), transparent 50%),
+        linear-gradient(180deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.35));
+}
+
+.minigame-hint {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 16px;
+    color: var(--text-muted);
+    font-weight: 700;
+}
+
+.minigame-target {
+    position: absolute;
+    width: 66px;
+    height: 66px;
+    border-radius: 999px;
+    border: 3px solid rgba(255, 255, 255, 0.7);
+    background:
+        radial-gradient(circle at center, rgba(255, 255, 255, 0.95) 0 9px, transparent 10px),
+        radial-gradient(circle at center, rgba(255, 255, 255, 0.25) 0 22px, transparent 23px),
+        radial-gradient(circle at center, var(--primary-color) 0 32px, rgba(0, 0, 0, 0.35) 64px);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.55), 0 0 0 6px rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    transform: translateZ(0);
+    transition: transform 0.06s ease;
+}
+
+.minigame-target:active {
+    transform: scale(0.95);
+}
+
+.minigame-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.hidden {
+    display: none !important;
+}

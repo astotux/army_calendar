@@ -101,6 +101,10 @@
             <div id="reveal-btn-container" style="display:none; margin-top: 8px;">
                 <button id="reveal-btn" class="btn" style="padding: 12px 24px; font-size: 0.95rem;">Закрасить</button>
             </div>
+
+            <button id="open-minigame-btn" class="btn btn-secondary" style="margin-top: 8px;">
+                Мини‑игра
+            </button>
             <div class="settings-drawer" id="settings-drawer">
                 <div class="settings-toggle" id="settings-toggle">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4b5320" stroke-width="2"
@@ -111,6 +115,41 @@
                 <div class="settings-buttons">
                     <button id="reset-date-btn" class="btn-micro">Изменить дату</button>
                     <button id="reset-char-btn" class="btn-micro">Изменить бойца</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Экран мини-игры -->
+        <div id="minigame-screen" class="screen hidden">
+            <header>
+                <h1 style="margin-bottom: 0;">Мини‑игра: Тир</h1>
+                <p style="margin-top: -10px;">Жми по мишени!</p>
+            </header>
+
+            <div class="minigame-panel">
+                <div class="minigame-stats">
+                    <div class="minigame-stat">
+                        <div class="minigame-stat__label">Счёт</div>
+                        <div class="minigame-stat__value" id="mg-score">0</div>
+                    </div>
+                    <div class="minigame-stat">
+                        <div class="minigame-stat__label">Время</div>
+                        <div class="minigame-stat__value" id="mg-time">30</div>
+                    </div>
+                    <div class="minigame-stat">
+                        <div class="minigame-stat__label">Рекорд</div>
+                        <div class="minigame-stat__value" id="mg-best">0</div>
+                    </div>
+                </div>
+
+                <div class="minigame-arena" id="mg-arena" role="button" aria-label="Игровое поле">
+                    <button class="minigame-target hidden" id="mg-target" type="button" aria-label="Мишень"></button>
+                    <div class="minigame-hint" id="mg-hint">Нажми «Старт»</div>
+                </div>
+
+                <div class="minigame-actions">
+                    <button id="mg-start-btn" class="btn">Старт</button>
+                    <button id="mg-back-btn" class="btn btn-secondary">Назад</button>
                 </div>
             </div>
         </div>
