@@ -505,7 +505,7 @@ header {
     background: transparent;
     border: none;
     color: var(--surface-light);
-    font-size: 0.7rem;
+    font-size: 0.6rem;
     cursor: pointer;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -672,11 +672,7 @@ header {
     left: 0;
     right: 0;
     transition: transform 0.3s ease-out;
-    z-index: 100;
-}
-
-.settings-drawer.collapsed {
-    transform: translateY(calc(100% - 40px));
+    /* z-index: 100; */
 }
 
 .settings-buttons {
@@ -684,29 +680,6 @@ header {
     justify-content: center;
     gap: 10px;
     padding-top: 0;
-}
-
-.settings-drawer.collapsed .settings-buttons {
-    opacity: 0;
-    pointer-events: none;
-}
-
-.arrow-icon {
-    transform: rotate(180deg);
-    transition: transform 0.3s ease;
-}
-
-.settings-drawer.collapsed .arrow-icon {
-    transform: rotate(0deg);
-}
-
-.settings-toggle {
-    width: 100%;
-    height: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
 }
 
 /* Better button for minigames */
